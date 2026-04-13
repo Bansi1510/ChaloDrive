@@ -22,7 +22,7 @@ const connectDB = async () => {
 
   try {
     const conn = await catched.promise;
-    console.log("Database connected sucessfully")
+    console.log("Database connected successfully")
     return conn;
   } catch (error) {
     console.log(error);
