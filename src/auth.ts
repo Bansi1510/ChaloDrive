@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials"
 import connectDB from "./lib/db";
 import User from "./models/user.model";
 import bcrypt from "bcryptjs";
+import Google from "next-auth/providers/google";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -19,6 +20,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           placeholder: "*****",
         },
       },
+
       authorize: async (credentials) => {
         if (!credentials.email || !credentials.password) {
           throw new Error("Credentials not found");
@@ -42,9 +44,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           role: user.role
         }
       }
+    }),
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET
     })
   ],
   callbacks: {
+    async signIn({ user, account }) {
+
+      if (account?.provider === "google") {
+        await connectDB();
+        const existingUser = await User.findOne({ email: user.email });
+
+        if (!existingUser) {
+          await User.create({
+            name: user.name,
+            email: user.email
+          })
+        }
+
+        user.id = existingUser._id;
+        user.role = existingUser.role;
+      }
+
+      return true;
+    },
     async jwt({ token, user }) {
       token.id = user.id;
       token.name = user.name;

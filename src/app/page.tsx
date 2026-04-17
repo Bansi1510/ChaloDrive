@@ -1,5 +1,9 @@
+import Public from "@/components/Home/Public";
+
 export default function Home() {
   return (
-    <div>Hello Vendors</div>
+    <>
+      <Public />
+    </>
   );
 }
