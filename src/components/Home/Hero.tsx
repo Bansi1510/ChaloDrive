@@ -21,8 +21,10 @@ const fade = (delay = 0) => ({
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.6, delay },
 });
-
-const Hero = () => (
+type Props = {
+  onLogin: () => void
+}
+const Hero = ({ onLogin }: Props) => (
   <section className="relative min-h-screen bg-[#0a0f1a] flex items-center justify-center overflow-hidden px-4">
 
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] bg-orange-500/20 blur-[100px] rounded-full pointer-events-none" />
@@ -49,6 +51,7 @@ const Hero = () => (
       {/* CTAs */}
       <motion.div {...fade(0.45)} className="flex flex-col sm:flex-row gap-3 justify-center mb-12">
         <motion.button
+          onClick={onLogin}
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-bold text-white text-sm bg-orange-500 hover:bg-orange-400 transition-colors shadow-[0_0_28px_rgba(249,115,22,0.35)]"

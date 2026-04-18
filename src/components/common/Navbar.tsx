@@ -5,7 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
 
-const Navbar = () => {
+type Props = {
+  onLogin: () => void
+}
+
+const Navbar = ({ onLogin }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
@@ -47,12 +51,12 @@ const Navbar = () => {
               </Link>
             ))}
 
-            <Link
-              href="/login"
+            <div
+              onClick={onLogin}
               className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition"
             >
               Login
-            </Link>
+            </div>
           </div>
 
           {/* Mobile Button */}
@@ -81,7 +85,7 @@ const Navbar = () => {
           <Link
             href="/login"
             className="block mt-3 bg-blue-600 px-4 py-2 rounded-lg text-center"
-            onClick={() => setIsOpen(false)}
+            onClick={onLogin}
           >
             Login
           </Link>
