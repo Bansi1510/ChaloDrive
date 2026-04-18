@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { X } from "lucide-react";
 import Image from "next/image";
+import axios from "axios";
+import { signIn, useSession } from "next-auth/react";
 
 type Props = {
   open: boolean;
@@ -14,10 +16,66 @@ type AuthState = "login" | "signup" | "otp";
 const Auth = ({ open, onClose }: Props) => {
   const [state, setState] = useState<AuthState>("login");
 
+
+  const [name, setName] = useState<string>("")
+  const [email, setEmail] = useState<string>("")
+  const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  const { data } = useSession();
+  console.log(data);
+  const handleSignup = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.post("/api/auth/register", { name, email, password });
+      console.log(data);
+
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) setError(error.response?.data.message || "sign up error");
+      else setError("Something went to wrong")
+    } finally {
+      setLoading(false);
+    }
+  }
+  const handleChange = (value: string, index: number) => {
+    if (!/^[0-9]?$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    if (value && index < 5) {
+      inputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputsRef.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const paste = e.clipboardData.getData("text").slice(0, 6);
+    if (!/^\d+$/.test(paste)) return;
+
+    const newOtp = paste.split("");
+    setOtp([...newOtp, ...Array(6 - newOtp.length).fill("")]);
+  };
+  const hangleLogin = async () => {
+    setLoading(true);
+    console.log(email, password);
+    const res = await signIn("credentials", { email, password, redirect: false });
+    console.log(res);
+    setLoading(false);
+  }
   if (!open) return null;
 
-  const handleGoogleLogin = () => {
-    console.log("Google Login Clicked");
+  const handleGoogleLogin = async () => {
+    await signIn("google");
   };
 
   return (
@@ -63,15 +121,18 @@ const Auth = ({ open, onClose }: Props) => {
                 type="email"
                 placeholder="Email address"
                 className="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
+                onChange={(e) => setEmail(e.target.value)}
               />
               <input
                 type="password"
                 placeholder="Password"
                 className="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
+                onChange={(e) => setPassword(e.target.value)}
+
               />
 
-              <button className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
-                Login
+              <button className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition" onClick={hangleLogin} disabled={loading} >
+                {!loading ? "Login" : "Logging"}
               </button>
 
               {/* Divider */}
@@ -87,7 +148,7 @@ const Auth = ({ open, onClose }: Props) => {
                 className="w-full flex items-center justify-center gap-3 border border-gray-300 py-3 rounded-xl hover:bg-gray-100 transition"
               >
                 <Image
-                  src="/google.png" // put google icon in public/google.png
+                  src="/google.png"
                   alt="google"
                   width={20}
                   height={20}
@@ -116,23 +177,27 @@ const Auth = ({ open, onClose }: Props) => {
                 type="text"
                 placeholder="Full Name"
                 className="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
+                onChange={(e) => setName(e.target.value)}
               />
               <input
                 type="email"
                 placeholder="Email address"
                 className="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
+                onChange={(e) => setEmail(e.target.value)}
               />
               <input
                 type="password"
                 placeholder="Password"
                 className="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
+                onChange={(e) => setPassword(e.target.value)}
               />
-
+              {error && <p className="text-red-600">{error} </p>}
               <button
-                onClick={() => setState("otp")}
+                onClick={handleSignup} //setState("otp")
                 className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition"
+                disabled={loading}
               >
-                Sign Up
+                {!loading ? "Sign Up" : "signing..."}
               </button>
 
               <p className="text-sm text-center text-gray-500">
@@ -150,14 +215,32 @@ const Auth = ({ open, onClose }: Props) => {
           {/* OTP */}
           {state === "otp" && (
             <div className="space-y-5 text-center">
-              <input
-                type="text"
-                maxLength={6}
-                placeholder="••••••"
-                className="w-full p-4 text-center tracking-[10px] text-xl rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
-              />
 
-              <button className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition">
+              {/* OTP BOXES */}
+              <div
+                className="flex justify-center gap-3"
+                onPaste={handlePaste}
+              >
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => {
+                      inputsRef.current[index] = el;
+                    }}
+                    type="text"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleChange(e.target.value, index)}
+                    onKeyDown={(e) => handleKeyDown(e, index)}
+                    className="w-12 h-14 text-center text-xl font-semibold rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                ))}
+              </div>
+
+              <button
+                onClick={() => console.log("OTP:", otp.join(""))}
+                className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition"
+              >
                 Verify OTP
               </button>
 
@@ -171,7 +254,7 @@ const Auth = ({ open, onClose }: Props) => {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

@@ -7,11 +7,11 @@ import Auth from './Auth'
 import Navbar from '../common/Navbar'
 
 const Public = () => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   return (
     <>
-      <Navbar />
-      <Hero />
+      <Navbar onLogin={() => setOpen(true)} />
+      <Hero onLogin={() => setOpen(true)} />
       <VehicleSlider />
       <Auth open={open} onClose={() => setOpen(false)} />
     </>
