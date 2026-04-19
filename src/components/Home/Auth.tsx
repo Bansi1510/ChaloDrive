@@ -32,7 +32,7 @@ const Auth = ({ open, onClose }: Props) => {
       setLoading(true);
       const { data } = await axios.post("/api/auth/register", { name, email, password });
       console.log(data);
-
+      setState("otp")
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) setError(error.response?.data.message || "sign up error");
       else setError("Something went to wrong")
