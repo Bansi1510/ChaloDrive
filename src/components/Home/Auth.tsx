@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import Image from "next/image";
 import axios from "axios";
 import { signIn, useSession } from "next-auth/react";
+import { loginAPI, singupAPI, verifyEmailAPI } from "@/services/auth.api";
 
 type Props = {
   open: boolean;
@@ -30,8 +31,7 @@ const Auth = ({ open, onClose }: Props) => {
   const handleSignup = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.post("/api/auth/register", { name, email, password });
-      console.log(data);
+      await singupAPI(name, email, password);
       setState("otp")
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) setError(error.response?.data.message || "sign up error");
@@ -57,19 +57,18 @@ const Auth = ({ open, onClose }: Props) => {
       inputsRef.current[index - 1]?.focus();
     }
   };
+  const handleVerifyEmail = async () => {
+    setLoading(true);
+    const otpstr = otp.join("");
+    const isTrue = await verifyEmailAPI(email, otpstr);
+    if (isTrue) setState("login")
+    setOtp(["", "", "", "", "", ""]);
+    setLoading(false);
+  }
 
-  const handlePaste = (e: React.ClipboardEvent) => {
-    const paste = e.clipboardData.getData("text").slice(0, 6);
-    if (!/^\d+$/.test(paste)) return;
-
-    const newOtp = paste.split("");
-    setOtp([...newOtp, ...Array(6 - newOtp.length).fill("")]);
-  };
   const hangleLogin = async () => {
     setLoading(true);
-    console.log(email, password);
-    const res = await signIn("credentials", { email, password, redirect: false });
-    console.log(res);
+    await loginAPI(email, password);
     setLoading(false);
   }
   if (!open) return null;
@@ -193,11 +192,11 @@ const Auth = ({ open, onClose }: Props) => {
               />
               {error && <p className="text-red-600">{error} </p>}
               <button
-                onClick={handleSignup} //setState("otp")
+                onClick={handleSignup}
                 className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition"
                 disabled={loading}
               >
-                {!loading ? "Sign Up" : "signing..."}
+                {!loading ? "send OTP" : " OTP sending..."}
               </button>
 
               <p className="text-sm text-center text-gray-500">
@@ -219,7 +218,6 @@ const Auth = ({ open, onClose }: Props) => {
               {/* OTP BOXES */}
               <div
                 className="flex justify-center gap-3"
-                onPaste={handlePaste}
               >
                 {otp.map((digit, index) => (
                   <input
@@ -238,8 +236,8 @@ const Auth = ({ open, onClose }: Props) => {
               </div>
 
               <button
-                onClick={() => console.log("OTP:", otp.join(""))}
                 className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition"
+                onClick={handleVerifyEmail}
               >
                 Verify OTP
               </button>
