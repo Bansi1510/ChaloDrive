@@ -1,6 +1,5 @@
 import { IUser } from '@/models/user.model'
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { UsersIcon } from 'lucide-react'
+import { createSlice } from '@reduxjs/toolkit'
 //import type { RootState } from '../../app/store'
 
 // Define a type for the slice state
@@ -14,7 +13,7 @@ const initialState: IUserState = {
 }
 
 export const userSlice = createSlice({
-  name: 'counter',
+  name: 'user',
   // `createSlice` will infer the state type from the `initialState` argument
   initialState,
   reducers: {

@@ -4,13 +4,17 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import UserProfile from "../Home/UserProfile";
 
 type Props = {
-  onLogin: () => void
-}
+  onLogin: () => void;
+};
 
 const Navbar = ({ onLogin }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { userData } = useSelector((state: RootState) => state.user);
 
   const menuItems = [
     { name: "Home", path: "/" },
@@ -19,7 +23,6 @@ const Navbar = ({ onLogin }: Props) => {
     { name: "Bookings", path: "/bookings" },
     { name: "About", path: "/about" },
   ];
-
   return (
     <nav className="bg-[#0a0f1a] text-white fixed w-full z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
@@ -51,12 +54,19 @@ const Navbar = ({ onLogin }: Props) => {
               </Link>
             ))}
 
-            <div
-              onClick={onLogin}
-              className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-            >
-              Login
-            </div>
+            {!userData ? (
+              <button
+
+                className="bg-blue-600 px-4 py-2 rounded-lg"
+                onClick={onLogin}
+              >
+                Login
+              </button>
+            ) : (
+              <div className="mt-3 flex justify-center">
+                <UserProfile userData={userData} />
+              </div>
+            )}
           </div>
 
           {/* Mobile Button */}
@@ -82,13 +92,19 @@ const Navbar = ({ onLogin }: Props) => {
             </Link>
           ))}
 
-          <Link
-            href="/login"
-            className="block mt-3 bg-blue-600 px-4 py-2 rounded-lg text-center"
-            onClick={onLogin}
-          >
-            Login
-          </Link>
+          {!userData ? (
+            <Link
+              href="/login"
+              className="bg-blue-600 px-4 py-2 rounded-lg"
+              onClick={onLogin}
+            >
+              Login
+            </Link>
+          ) : (
+            <div className="mt-3 flex justify-center">
+              <UserProfile userData={userData} />
+            </div>
+          )}
         </div>
       )}
     </nav>
