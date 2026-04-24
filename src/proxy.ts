@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "./auth";
 
 const PUBLIC_ROUTES = ["/"];
-const PUBLIC_APIS = ["/api/auth"];
 export const proxy = async (req: NextRequest) => {
   const { pathname } = req.nextUrl;
   if (pathname.startsWith("/_next") || pathname.startsWith("/favicon.ico") || pathname.startsWith(".")) {
@@ -11,7 +10,7 @@ export const proxy = async (req: NextRequest) => {
   }
 
   if (PUBLIC_ROUTES.includes(pathname)) return NextResponse.next();
-  if (PUBLIC_APIS.includes(pathname)) return NextResponse.next();
+  if (pathname.startsWith("/api/auth")) return NextResponse.next();
 
   const session = await getServerSession(authOptions);
 
@@ -25,6 +24,9 @@ export const proxy = async (req: NextRequest) => {
     return NextResponse.redirect(new URL("/", req.url))
   }
   if (pathname.startsWith("/partner") && role != "partner") {
+
+    if (pathname.startsWith("/partner/boarding")) return NextResponse.next();
+
     return NextResponse.redirect(new URL("/", req.url))
   }
 
