@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, UploadCloud } from "lucide-react"
+import { ArrowLeft, UploadCloud, CheckCircle2 } from "lucide-react"
 import { motion } from "framer-motion"
 
 type DocumentState = {
@@ -26,99 +26,108 @@ const Document: React.FC = () => {
     }
   }, [router])
 
-  const handleNext = () => {
-    if (!docs.aadhar || !docs.license || !docs.rc) {
-      alert("Upload all documents")
-      return
-    }
+  const handleSubmit = () => {
+    console.log(docs)
+    router.push("/partner/boarding/bank")
+  }
 
-    localStorage.setItem("documents", JSON.stringify(docs))
-    router.push("/partner/vehicle/bank")
+  const uploadBox = (
+    label: string,
+    key: keyof DocumentState
+  ) => {
+    const file = docs[key]
+
+    return (
+      <div className="border border-neutral-200 rounded-2xl p-5 flex items-center justify-between hover:border-neutral-400 transition">
+
+        {/* Left */}
+        <div>
+          <p className="text-sm font-semibold text-neutral-800">
+            {label}
+          </p>
+          <p className="text-xs text-neutral-400 mt-1">
+            {file ? file.name : "Upload document"}
+          </p>
+        </div>
+
+        {/* Right */}
+        <label className="cursor-pointer flex items-center gap-2 text-sm font-medium text-neutral-600 hover:text-black transition">
+          {file ? (
+            <CheckCircle2 className="w-5 h-5 text-green-500" />
+          ) : (
+            <UploadCloud className="w-5 h-5" />
+          )}
+
+          <span>{file ? "Uploaded" : "Upload"}</span>
+
+          <input
+            type="file"
+            hidden
+            onChange={(e) =>
+              setDocs((prev) => ({
+                ...prev,
+                [key]: e.target.files?.[0] ?? null,
+              }))
+            }
+          />
+        </label>
+      </div>
+    )
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 30 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3 }}
-      className="min-h-screen flex items-center justify-center bg-gray-50 relative"
-    >
+    <div className="min-h-screen flex items-center justify-center bg-[#f6f6f3] px-6 py-10">
 
-      {/* Back Arrow */}
-      <button
-        onClick={() => router.back()}
-        className="absolute top-5 left-5 p-2 rounded-full hover:bg-gray-100"
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-2xl"
       >
-        <ArrowLeft className="w-5 h-5" />
-      </button>
 
-      <div className="card">
-        <div className="text-center">
-          <p className="step">step 2 of 3</p>
-          <h2 className="title">Upload Documents</h2>
-        </div>
-
-        <div className="space-y-4">
-
-          <div className="flex justify-between items-center border rounded-xl p-4">
-            <p>Aadhaar</p>
-            <label className="upload-btn">
-              <UploadCloud size={18} />
-              <input
-                type="file"
-                hidden
-                onChange={(e) =>
-                  setDocs((prev) => ({
-                    ...prev,
-                    aadhar: e.target.files?.[0] ?? null,
-                  }))
-                }
-              />
-            </label>
-          </div>
-
-          <div className="flex justify-between items-center border rounded-xl p-4">
-            <p>License</p>
-            <label className="upload-btn">
-              <UploadCloud size={18} />
-              <input
-                type="file"
-                hidden
-                onChange={(e) =>
-                  setDocs((prev) => ({
-                    ...prev,
-                    license: e.target.files?.[0] ?? null,
-                  }))
-                }
-              />
-            </label>
-          </div>
-
-          <div className="flex justify-between items-center border rounded-xl p-4">
-            <p>RC</p>
-            <label className="upload-btn">
-              <UploadCloud size={18} />
-              <input
-                type="file"
-                hidden
-                onChange={(e) =>
-                  setDocs((prev) => ({
-                    ...prev,
-                    rc: e.target.files?.[0] ?? null,
-                  }))
-                }
-              />
-            </label>
-          </div>
-
-        </div>
-
-        <button onClick={handleNext} className="btn">
-          Continue
+        {/* Back */}
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 mb-6 text-sm text-neutral-500 hover:text-black"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
         </button>
-      </div>
-    </motion.div>
+
+        {/* Card */}
+        <div className="bg-white rounded-3xl shadow-xl border border-neutral-100 px-8 py-8 space-y-8">
+
+          {/* Header */}
+          <div>
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+              Step 2 of 3
+            </p>
+            <h1 className="text-3xl font-bold text-neutral-900 mt-1">
+              Upload Documents
+            </h1>
+            <p className="text-sm text-neutral-400 mt-1">
+              Add required documents to continue
+            </p>
+          </div>
+
+          {/* Upload Sections */}
+          <div className="space-y-4">
+            {uploadBox("Aadhaar Card", "aadhar")}
+            {uploadBox("Driving License", "license")}
+            {uploadBox("RC (Registration Certificate)", "rc")}
+          </div>
+
+          {/* CTA */}
+          <button
+            onClick={handleSubmit}
+            className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-sm tracking-wide hover:opacity-90 transition"
+          >
+            Continue
+          </button>
+
+        </div>
+      </motion.div>
+    </div>
   )
 }
 
-export default Document;
+export default Document
